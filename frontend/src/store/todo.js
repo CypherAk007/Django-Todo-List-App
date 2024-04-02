@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const initialState = {list:[]}
+const initialState = {list:[],open:false}
 const listSlice = createSlice({
     name:'todo',
     initialState:initialState,
@@ -8,6 +8,9 @@ const listSlice = createSlice({
         populateList(state,action){
             state.list = action.payload
         },
+        openModal(state){
+            state.open = !state.open
+        }
     }
 })
 

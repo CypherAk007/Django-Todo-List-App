@@ -5,6 +5,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { listActions } from "../store/todo";
 import axios from "axios";
 import "font-awesome/css/font-awesome.min.css";
+import Modal from "../components/Modal";
+import { useNavigate } from "react-router-dom";
 
 const HomeScreen = () => {
   const [currentDay, setCurrentDay] = useState("");
@@ -18,6 +20,7 @@ const HomeScreen = () => {
     return `${month}/${date}/${year}`;
   };
   const [enteredTask, setEnteredTask] = useState("");
+  const navigate = useNavigate()
 
   useEffect(() => {
     const fetchList = async () => {
@@ -43,7 +46,7 @@ const HomeScreen = () => {
 
   const deleteTodo = (id) => {
     // React ui updated
-    const newList = list.filter((todo) => todo.id != id);
+    const newList = list.filter((todo) => todo.id !== id);
     dispatch(listActions.populateList(newList));
 
     // Delete in backend
@@ -71,10 +74,15 @@ const HomeScreen = () => {
       // const headers = {"Content-type": "application/json",}
       const createData = {
         task: enteredTask,
+        status:false,
       };
-      const { data } = await axios.post("/api/todo/create", createData, config);
+      const originalList = [...list]
+      const { data } = await axios.post("/api/todo/create", createData, config).catch(err=>{
+        console.log(err);
+        dispatch(listActions.populateList(originalList));
+      })
       console.log(data);
-      // dispatch(listActions.populateList(data));
+      dispatch(listActions.populateList([...list,data]));
     };
     createTask();
     setEnteredTask("");
@@ -85,9 +93,13 @@ const HomeScreen = () => {
     deleteTodo(id)
   }
 
+  const updateHandler = (id)=>{
+    navigate(`/todo/edit_task/${id}`)
+  }
+
   return (
     <div
-      className={`${classes["heading"]} flex items-center flex-col w-1000 bg-orange-500`}
+    className={`${classes["heading"]} flex items-center flex-col w-1000 bg-orange-500`}
     >
       <div className={`my-16`}>Todo List Django</div>
       <div
@@ -100,6 +112,7 @@ const HomeScreen = () => {
               <div className={`flex justify-between`}>
                 <div>{todo.task}</div>
                 <div>{todo.status}</div>
+                <button onClick={()=>updateHandler(todo.id)}><i className={"fa fa-pencil"}></i></button>
                 <button onClick={()=>deleteHandler(todo.id)}><i className={"fa fa-trash"}></i></button>
               </div>
             ))}
@@ -129,6 +142,7 @@ const HomeScreen = () => {
             <div className={`flex justify-between`}>
               <div>{todo.task}</div>
               <div>{todo.status}</div>
+              <button onClick={()=>updateHandler(todo.id)}><i className={"fa fa-pencil"}></i></button>
               <button onClick={()=>deleteHandler(todo.id)}><i className={"fa fa-trash"}></i></button>
               
             </div>

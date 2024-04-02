@@ -69,7 +69,7 @@ def todo_detail(request,pk):
 
 
     # PUT => replaces entire object, PATCH => updates specific field in object 
-    elif request.method=='PUT':
+    elif request.method=='PATCH':
         serializer = UpdateTaskSerializer(todo,data=request.data)
         if serializer.is_valid():
             serializer.save()
