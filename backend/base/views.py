@@ -1,10 +1,10 @@
-from django.shortcuts import render
+from django.shortcuts import render,get_object_or_404
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .todo import tasks
 
 from .models import TodoList
-from .serializers import ListSerializer,CreateTaskSerializer
+from .serializers import ListSerializer,CreateTaskSerializer,UpdateTaskSerializer
 
 from rest_framework import generics,status
 
@@ -18,6 +18,8 @@ def getRoutes(request):
         '/api/todo',
         '/api/todo/edit_task/<id>',
         '/api/todo/create',
+        '/api/todo/update/<int:pk>',
+
     ]
     print("Goodbye cruel world!", file=sys.stderr)
     return Response(routes)
@@ -56,3 +58,24 @@ def createTask(request):
         message = {'detail':'task not posted'}
         return Response(serializer.error,status=status.HTTP_400_BAD_REQUEST)
 
+@api_view(['GET','PATCH','PUT','DELETE'])
+def todo_detail(request,pk):
+    todo = get_object_or_404(TodoList,id=pk)
+
+    # GET specific object 
+    if request.method=='GET':
+        serializer = UpdateTaskSerializer(todo)
+        return Response(serializer.data)
+
+
+    # PUT => replaces entire object, PATCH => updates specific field in object 
+    elif request.method=='PUT':
+        serializer = UpdateTaskSerializer(todo,data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.error,status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method=='DELETE':
+        todo.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

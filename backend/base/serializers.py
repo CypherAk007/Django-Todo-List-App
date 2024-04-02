@@ -12,3 +12,9 @@ class CreateTaskSerializer(serializers.ModelSerializer):
         model = TodoList
         fields = ['id','task','description','status']
         # fields = '__all__'
+
+class UpdateTaskSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TodoList
+        fields = ['id','task','description','status']
+        # fields = '__all__'
