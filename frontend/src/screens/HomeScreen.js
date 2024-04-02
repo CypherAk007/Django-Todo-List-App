@@ -20,7 +20,7 @@ const HomeScreen = () => {
     return `${month}/${date}/${year}`;
   };
   const [enteredTask, setEnteredTask] = useState("");
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchList = async () => {
@@ -74,32 +74,83 @@ const HomeScreen = () => {
       // const headers = {"Content-type": "application/json",}
       const createData = {
         task: enteredTask,
-        status:false,
+        status: false,
       };
-      const originalList = [...list]
-      const { data } = await axios.post("/api/todo/create", createData, config).catch(err=>{
-        console.log(err);
-        dispatch(listActions.populateList(originalList));
-      })
+      const originalList = [...list];
+      const { data } = await axios
+        .post("/api/todo/create", createData, config)
+        .catch((err) => {
+          console.log(err);
+          dispatch(listActions.populateList(originalList));
+        });
       console.log(data);
-      dispatch(listActions.populateList([...list,data]));
+      dispatch(listActions.populateList([...list, data]));
     };
     createTask();
     setEnteredTask("");
   };
 
-  const deleteHandler = (id)=>{
-    console.log('deleted',id);
-    deleteTodo(id)
-  }
+  const deleteHandler = (id) => {
+    console.log("deleted", id);
+    deleteTodo(id);
+  };
 
-  const updateHandler = (id)=>{
-    navigate(`/todo/edit_task/${id}`)
-  }
+  const updateHandler = (id) => {
+    navigate(`/todo/edit_task/${id}`);
+  };
 
+  const completeClickHandler = (id) => {
+    // Update the UI
+    dispatch(
+      listActions.populateList(
+        list.map((todo) => (todo.id == id ? { ...todo, status: true } : todo))
+      )
+    );
+
+    // Update the Backend
+    const currentTodo = list.filter((todo) => todo.id == id)[0];
+    console.log(currentTodo);
+    const updatedTodo = { ...currentTodo, status: true };
+    axios.patch("/api/todo/update/" + id, updatedTodo).catch((err) => {
+      console.log(err.message);
+      dispatch(
+        listActions.populateList(
+          list.map((todo) => (todo.id == id ? { ...todo, status: false } : todo))
+        )
+      );
+    });
+
+
+    // navigate(`/`)
+  };
+
+  const inCompleteClickHandler = (id) => {
+    // Update the UI
+    dispatch(
+      listActions.populateList(
+        list.map((todo) => (todo.id == id ? { ...todo, status: false } : todo))
+      )
+    );
+
+    // Update the Backend
+    const currentTodo = list.filter((todo) => todo.id == id)[0];
+    console.log(currentTodo);
+    const updatedTodo = { ...currentTodo, status: false };
+    axios.patch("/api/todo/update/" + id, updatedTodo).catch((err) => {
+      console.log(err.message);
+      dispatch(
+        listActions.populateList(
+          list.map((todo) => (todo.id == id ? { ...todo, status: true } : todo))
+        )
+      );
+    });
+
+
+    // navigate(`/`)
+  };
   return (
     <div
-    className={`${classes["heading"]} flex items-center flex-col w-1000 bg-orange-500`}
+      className={`${classes["heading"]} flex items-center flex-col w-1000 bg-orange-500`}
     >
       <div className={`my-16`}>Todo List Django</div>
       <div
@@ -111,9 +162,18 @@ const HomeScreen = () => {
             {notCompletedTasks.map((todo) => (
               <div className={`flex justify-between`}>
                 <div>{todo.task}</div>
-                <div>{todo.status}</div>
-                <button onClick={()=>updateHandler(todo.id)}><i className={"fa fa-pencil"}></i></button>
-                <button onClick={()=>deleteHandler(todo.id)}><i className={"fa fa-trash"}></i></button>
+                {/* <div>{todo.status}</div> */}
+                <div className={`flex gap-8`}>
+                  <button onClick={() => completeClickHandler(todo.id)}>
+                    <i className={" text-red-600 fa fa-check"}></i>
+                  </button>
+                  <button onClick={() => updateHandler(todo.id)}>
+                    <i className={"fa fa-pencil"}></i>
+                  </button>
+                  <button onClick={() => deleteHandler(todo.id)}>
+                    <i className={"fa fa-trash"}></i>
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -141,10 +201,18 @@ const HomeScreen = () => {
           {completedTasks.map((todo) => (
             <div className={`flex justify-between`}>
               <div>{todo.task}</div>
-              <div>{todo.status}</div>
-              <button onClick={()=>updateHandler(todo.id)}><i className={"fa fa-pencil"}></i></button>
-              <button onClick={()=>deleteHandler(todo.id)}><i className={"fa fa-trash"}></i></button>
-              
+              {/* <div>{todo.status}</div> */}
+              <div className={`flex gap-8`}>
+                <button onClick={() => inCompleteClickHandler(todo.id)}>
+                  <i className={"fa fa-times"}></i>
+                </button>
+                <button onClick={() => updateHandler(todo.id)}>
+                  <i className={"fa fa-pencil"}></i>
+                </button>
+                <button onClick={() => deleteHandler(todo.id)}>
+                  <i className={"fa fa-trash"}></i>
+                </button>
+              </div>
             </div>
           ))}
         </div>
